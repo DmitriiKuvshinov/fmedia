@@ -1,0 +1,28 @@
+---
+- name: Node-exporter
+  become: true
+  community.general.docker_container:
+    name: node-exporter
+    user: root
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /run/systemd/private:/run/systemd/private:ro
+    command:
+      - --collector.runit
+      - --collector.systemd
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+- name: Link node-exporter to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - node-exporter
+    appends: yes

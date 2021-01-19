@@ -1,0 +1,13 @@
+---
+- name: restart prometheus
+  become: true
+  community.general.docker_container:
+    name: prometheus
+    auto_remove: no
+    restart: yes
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: bitnami/prometheus
+    volumes:
+      - /var/prometheus/data:/opt/bitnami/prometheus/data
+      - /var/prometheus/conf:/opt/bitnami/prometheus/conf

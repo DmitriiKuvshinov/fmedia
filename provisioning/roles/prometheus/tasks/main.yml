@@ -1,0 +1,38 @@
+---
+- name: Creates Prometheus data directory
+  become: true
+  file:
+    path: /var/prometheus/data
+    state: directory
+    mode: 0775
+- name: Creates Prometheus conf directory
+  become: true
+  file:
+    path: /var/prometheus/conf
+    state: directory
+    mode: 0775
+
+- name: Copy prometheus conf
+  become: true
+  copy:
+    src: prometheus.j2
+    dest: /var/prometheus/conf/prometheus.yml
+  notify: restart prometheus
+
+- name: Prometheus container
+  become: true
+  community.general.docker_container:
+    name: prometheus
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: bitnami/prometheus
+    volumes:
+      - /var/prometheus/data:/opt/bitnami/prometheus/data
+      - /var/prometheus/conf:/opt/bitnami/prometheus/conf
+- name: Link Prometheus to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - prometheus
+    appends: yes

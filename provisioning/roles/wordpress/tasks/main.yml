@@ -1,0 +1,29 @@
+---
+- name: Creates wordpress directory
+  become: true
+  file:
+    path: /var/wordpress/www
+    state: directory
+
+- name: wordpress container
+  become: true
+  community.general.docker_container:
+    name: wordpress
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: wordpress:php7.4-fpm
+    volumes:
+      - /var/wordpress/www:/var/www/html
+    env:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+
+- name: Link wordpress to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - wordpress
+    appends: yes

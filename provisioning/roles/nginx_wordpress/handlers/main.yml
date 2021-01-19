@@ -1,0 +1,16 @@
+---
+- name: restart nginx
+  become: true
+  community.general.docker_container:
+    working_dir: /var/wordpress
+    name: nginx
+    restart: yes    
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: nginx:stable-alpine
+    ports:
+     - 80:80
+    volumes:
+     - /var/wordpress/www:/var/www/html
+     - /var/wordpress/nginx:/etc/nginx/conf.d

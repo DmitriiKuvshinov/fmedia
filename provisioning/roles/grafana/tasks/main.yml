@@ -1,0 +1,39 @@
+---
+- name: Creates data grafana directory
+  become: true
+  file:
+    path: /var/grafana/data
+    state: directory
+    mode: 0775
+- name: Creates data grafana directory
+  become: true
+  file:
+    path: /var/grafana/conf
+    state: directory
+    mode: 0775
+- name: Copy grafana conf
+  become: true
+  copy:
+    src: grafana.j2
+    dest: /var/grafana/conf/grafana.ini
+  notify: restart grafana
+- name: Grafana container
+  become: true
+  community.general.docker_container:
+    name: grafana
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: grafana/grafana:master
+    volumes:
+      - /var/grafana/data:/var/lib/grafana
+      - /var/grafana/conf:/etc/grafana
+    env:
+      GF_RENDERING_SERVER_URL: "http://render:8081/render"
+      GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
+- name: Link grafana to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - grafana
+    appends: yes

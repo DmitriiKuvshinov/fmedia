@@ -1,0 +1,42 @@
+---
+- name: Create nginx directory
+  become: true
+  file:
+    path: /var/wordpress/nginx
+    state: directory
+
+- name: Copy wordpress conf
+  become: true
+  copy:
+    src: wordpress.conf
+    dest: /var/wordpress/nginx/wordpress.conf
+  notify: restart nginx
+
+- name: Nginx container UP
+  become: true
+  community.general.docker_container:
+    working_dir: /var/wordpress
+    name: nginx
+    auto_remove: no
+    recreate: true
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: nginx:stable-alpine
+    ports:
+     - 80:80
+    volumes:
+     - /var/wordpress/www:/var/www/html
+     - /var/wordpress/nginx:/etc/nginx/conf.d
+     
+- name: Link nginx to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - nginx
+    appends: yes
+- name: Link nginx to public network
+  community.general.docker_network:
+    name: frontend
+    connected:
+      - nginx
+    appends: yes

@@ -1,0 +1,23 @@
+---
+- name: cadvisor
+  become: true
+  community.general.docker_container:
+    user: root
+    name: cadvisor
+    recreate: true    
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: google/cadvisor
+    volumes:
+     - '/:/rootfs:ro'
+     - '/var/run:/var/run:rw'
+     - '/sys:/sys:ro'
+     - '/var/lib/docker/:/var/lib/docker:ro'
+
+- name: Link cadvisor to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - cadvisor
+    appends: yes

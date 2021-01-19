@@ -1,0 +1,19 @@
+---
+- name: render
+  become: true
+  community.general.docker_container:
+    name: render
+    restart: yes  
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: grafana/grafana-image-renderer:latest
+    env:
+      ENABLE_METRICS: "true"
+
+- name: Link cadvisor to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - render
+    appends: yes

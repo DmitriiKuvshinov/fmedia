@@ -1,0 +1,16 @@
+---
+- name: restart grafana
+  become: true
+  community.general.docker_container:
+    name: grafana
+    auto_remove: no
+    restart: yes
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: grafana/grafana:master
+    volumes:
+      - /var/grafana/data:/var/lib/grafana
+      - /var/grafana/conf:/etc/grafana
+    env:
+      GF_RENDERING_SERVER_URL: "http://render:8081/render"
+      GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"

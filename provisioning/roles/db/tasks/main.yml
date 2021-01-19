@@ -1,0 +1,38 @@
+---
+- name: Creates DB directory
+  become: true
+  file:
+    path: /var/wordpress/mysql
+    state: directory
+
+- name: Copy conf
+  become: true
+  synchronize:
+    src: files
+    dest: /var/wordpress/mysql/
+  notify: restart mysql
+
+- name: Mysql container
+  become: true
+  community.general.docker_container:
+    working_dir: /var/wordpress
+    name: mysql
+    auto_remove: no
+    container_default_behavior: compatibility
+    restart_policy: unless-stopped
+    image: mysql:5.7
+    volumes:
+     - /var/wordpress/mysql/db:/var/lib/mysql
+     - /var/wordpress/mysql/files:/etc/mysql
+    env:
+     MYSQL_ROOT_PASSWORD: wordpress
+     MYSQL_DATABASE: wordpress
+     MYSQL_USER: wordpress
+     MYSQL_PASSWORD: wordpress
+
+- name: Link mysql to internal network
+  community.general.docker_network:
+    name: backend
+    connected:
+      - mysql
+    appends: yes
